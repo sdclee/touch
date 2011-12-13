@@ -98,6 +98,18 @@ This is the modification time for the file.
        tm structures are produced from by localtime and gmtime.
        tm structures are converted to strings by asctime.
        tm structures are converted to seconds by mktime and .
+ 
+ 
+	int _utime( unsigned char *filename, struct _utimbuf *times );
+	
+	//Show file time before and after.
+	system( "dir utime.c" );
+	if( _utime( "utime.c", NULL ) == -1 )
+      perror( "_utime failed\n" );
+	else
+      printf( "File time modified\n" );
+	system( "dir utime.c" );
+	
  */
  
 int touch (char *filename, char **argv)
