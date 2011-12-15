@@ -70,7 +70,37 @@ int main (int argc, char **argv)
 	for (i = 0; i < argc; i++)
 	{
 		printf ("arg %i = %s\n", i, argv [i]);
+	
+		//tStamp = checkArgs (argv, '-t');
+		if (strcmp (argv [i], "-t") == 0)
+		{
+			char *tStamp = argv [i + 1];	
+			
+			printf ("timsestamp: %s\n", tStamp);	
+		}
 	}
+	
+/*
+    for (i = 1; i < argc; i++)  // Skip argv[0] (program name). 
+    {
+        //
+        // Use the 'strcmp' function to compare the argv values
+        // to a string of your choice (here, it's the optional
+        // argument "-q").  When strcmp returns 0, it means that the
+        // two strings are identical.
+        //
+
+        if (strcmp(argv[i], "-q") == 0)  // Process optional arguments. 
+        {
+            quiet = 1;  // This is used as a boolean value. 
+        }
+        else
+        {
+            // Process non-optional arguments here. 
+        }
+    }
+	
+ */	
 	
 	exit (0);
 }
@@ -115,7 +145,7 @@ This is the modification time for the file.
 int touch (char *filename, char **argv)
 {
 	struct utimbuf ut;
-	
+
 	if (argv == NULL)
 	{
 		printf ("Simple touch with filename: %s\n", filename); 
@@ -155,6 +185,5 @@ int touch (char *filename, char **argv)
 		}		
 		
 		system (sys);
-
 	}
 }
