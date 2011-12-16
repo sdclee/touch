@@ -37,31 +37,41 @@
  *	output version information and exit
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <sys/types.h>
+#ifdef __linux__
+#include <utime.h>
+#else
 #include <sys/utime.h>
+#endif
 
 #define FALSE 0;
 #define TRUE  1;
 
-int touch (char *filename, struct _utimbuf *timestamp, short int bCreate);
+//int touch (char *, struct _utimbuf *, short int);
+int touch (const char *filename, const struct utimbuf *timestamp, short int bCreate);
 
 int main (int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		printf ("usage: touch <file> [flags]\n");
+		printf ("usage: touch [flags] <file>\n");
+		printf ("       touch --help\n");
+		printf ("(touch 0.01)\n\n");
 		exit (1);
 	}
 	
 	short int bTimeStamp = FALSE;
 	short int bCreate = TRUE;
 	struct tm tma = {0}, tmm = {0};
-	struct _utimbuf ut;
+	struct utimbuf ut;
+	struct utimbuf *pnull = NULL;
 
 	if (argc == 2)
 	{
-		touch (argv [1], NULL, bCreate);
+		touch (argv [1], pnull, bCreate);
 		exit (0);
 	}
 	
@@ -185,11 +195,16 @@ int main (int argc, char **argv)
 	exit (0);
 }
  
-int touch (char *filename, struct _utimbuf *timestamp, short int bCreate)
-{
-	struct utimbuf ut;
+int foo (const char *filename, short int bCreate);
 
-	if (timestamp == ( struct _utimbuf *) NULL)
+int foo (const char *filename, short int bCreate)
+{
+	printf ("got to foo\n");
+}
+
+int touch (const char *filename, const struct utimbuf *timestamp, short int bCreate)
+{
+	if (timestamp == ( struct utimbuf *) NULL)
 	{
 		printf ("Simple touch with filename: %s\n", filename); 
 	}
@@ -211,8 +226,8 @@ int touch (char *filename, struct _utimbuf *timestamp, short int bCreate)
 		// exists
 		fclose (fp);
 
-		if (_utime (filename, timestamp) == -1)
-			perror ("_utime failed\n");
+		if (utime (filename, timestamp) == -1)
+			perror ("utime failed\n");
 	} 
 	else if (bCreate)
 	{
@@ -224,8 +239,8 @@ int touch (char *filename, struct _utimbuf *timestamp, short int bCreate)
 		{
 			fclose (fp);
 
-			if (_utime (filename, timestamp) == -1)
-				perror ("_utime failed\n");
+			if (utime (filename, timestamp) == -1)
+				perror ("utime failed\n");
 		}
 		else
 		{

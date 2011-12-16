@@ -1,3 +1,22 @@
+Notes
+
+Although the original aim was to provide a windows executable capable of creating a file if one does not exist
+I have gone to the trouble of makeing this both Linux and Windows compatible in compile terms.
+Included in the repo should be:
+
+	touch.c
+	touch.exe (windows binary)
+	touch (linux binary)
+
+To complie in linux, simply run:
+
+	gcc -o touch touch.c
+
+
+To complie in windows, install (the beautifully lightweight tcc) and simply run:
+
+	tcc touch.c
+
 
 Still requires a little bit of work for trapping unusual input, but to date works for:
 
