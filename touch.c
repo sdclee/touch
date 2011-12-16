@@ -6,7 +6,7 @@
  *
  * A simple implementation of the *nix touch program for the windows command line.
  * There are version freely available on the internet but I wasn't able to locate one that
- * implements the flags and to create a file where one does not exist.
+ * implements all of the the flags and to create a file where one does not exist.
  *
  * The source code can be freely distributed and modified but as a courtesy, please leave the
  * original author details in tact.
@@ -37,12 +37,14 @@
  *	output version information and exit
  */
 #include <stdio.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/utime.h>
 
-// int utime(const char *path, const struct utimbuf *times)
+#define FALSE 0;
+#define TRUE  1;
 
-int touch (char *filename, char **argv);
+int touch (char *filename, struct _utimbuf *timestamp, short int bCreate);
 
 int main (int argc, char **argv)
 {
@@ -52,9 +54,15 @@ int main (int argc, char **argv)
 		exit (1);
 	}
 	
+	short int bTimeStamp = FALSE;
+	short int bCreate = TRUE;
+	struct tm tma = {0}, tmm = {0};
+	struct _utimbuf ut;
+
 	if (argc == 2)
 	{
-		touch (argv [1], NULL);
+		touch (argv [1], NULL, bCreate);
+		exit (0);
 	}
 	
 	/*
@@ -67,47 +75,35 @@ int main (int argc, char **argv)
 	 * We should sort out the file list, the single args and the arg pairs
 	 */
 	int i;
+	int iFilePos = 0;
+
 	for (i = 0; i < argc; i++)
 	{
-		printf ("arg %i = %s\n", i, argv [i]);
-	
-		//tStamp = checkArgs (argv, '-t');
+		//DEBUG
+		//printf ("arg %i = %s\n", i, argv [i]);
+
+		if (strcmp (argv [i], "-c") == 0)
+		{
+			bCreate = FALSE;
+		}
+		
 		if (strcmp (argv [i], "-t") == 0)
 		{
+			bTimeStamp = 1;
+			iFilePos = i + 2;	// where the file(s) potentially start if there are no other flags
 			// no safety check here yet !
 			char *tStamp = argv [i + 1];	
 			
-			printf ("timsestamp: %s\n", tStamp);	
 			//  [[CC]YY]MMDDhhmm[.ss] 
-			
-
-			struct tm
-			{
-				int tm_sec;      // 0 to 59 (or 60 for occasional rare leap-seconds)
-				int tm_min;      // 0 to 59
-				int tm_hour;     // 0 to 23
-				int tm_mday;     // 1 to 31
-				int tm_mon;      // 0 to 11, stupidly 0=January, 11=December
-				int tm_year;     // year-1900, so 79 means 1979, 103 means 2003
-				int tm_wday;     // 0 to 6, 0=Sunday, 1=Monday, ..., 6=Saturday
-				int tm_yday;     // 0 to 365, 0=1st January
-				int tm_isdst;    // 0 to 1, 1=DST is in effect, 0=it isn't
-				char *tm_zone;   // time zone, e.g. "PDT", "EST".
-				int tm_gmtoff;   // time zone in seconds from GMT; EST=-18000, WET=3600
-			} tm;
-
-			tm.tm_sec = 0;				
-			tm.tm_min = 0;				
+			tma.tm_sec = tmm.tm_sec = tma.tm_isdst = tmm.tm_isdst = 0;
 			
 			char szSec [3];
 			strcpy (szSec, "00");
 			
 			int tStampLen = strlen (tStamp);
-			printf ("tStampLen = %d\n", tStampLen);
 			
 			if (tStamp [tStampLen - 3] == '.')
 			{
-				printf ("Seconds specified\n");
 				strncpy (szSec, &tStamp [tStampLen - 2], 2);
 				
 				// then just lop off the end with a judiciously placed null to make the right hand end of the string
@@ -132,118 +128,110 @@ int main (int argc, char **argv)
 			strncpy (szMon, &tStamp [tStampLen - 8], 2);
 			szMon [2] = '\0';
 
-			tm.tm_sec   = atoi (szSec); 
-			tm.tm_min   = atoi (szMin); 
-			tm.tm_hour  = atoi (szHour); 
-			tm.tm_mday  = atoi (szDay); 
-			tm.tm_mon   = atoi (szMon) - 1;	// 0 = January 
+			tma.tm_sec  = tmm.tm_sec   = atoi (szSec); 
+			tma.tm_min  = tmm.tm_min   = atoi (szMin); 
+			tma.tm_hour = tmm.tm_hour  = atoi (szHour); 
+			tma.tm_mday = tmm.tm_mday  = atoi (szDay); 
+			tma.tm_mon  = tmm.tm_mon   = atoi (szMon) - 1;	// 0 = January 
 
-			char szYear [5];
+			char szYear [21];
 			memset (szYear, '\0', sizeof (szYear));
 			
 			// We could have 8, 10 or 12 chars left in the string from which to determine the year (and century)
 			if (strlen (tStamp) == 8)
 			{
 				// no CCYY specified		
+				// Get the current time (just need the year part)
+				time_t currtime;
+				struct tm *loctime;
+				currtime = time (NULL);
+				loctime = localtime (&currtime);
+				strftime (szYear, sizeof (szYear), "%Y", loctime); 
+				tma.tm_year = tmm.tm_year = atoi (szYear) - 1900;	
 			}
 			else if (strlen (tStamp) == 10)
 			{
 				// just YY specified		
 				strncpy (szYear, tStamp, 2);
-				tm.tm_year = atoi (szYear);	
+				tma.tm_year = tmm.tm_year = atoi (szYear);	
 			}
 			else if (strlen (tStamp) == 12)
 			{
 				// CCYY specified
 				strncpy (szYear, tStamp, 4);
-				tm.tm_year = atoi (szYear) - 1900;	
+				tma.tm_year = tmm.tm_year = atoi (szYear) - 1900;	
 			}			
-			printf ("year = %s month = %s day = %s hours = %s minutes = %s seconds = %s\n", szYear, szMon, szDay, szHour , szMin, szSec);		
+			//printf ("year = %s month = %s day = %s hours = %s minutes = %s seconds = %s\n", szYear, szMon, szDay, szHour , szMin, szSec);		
+			//printf ("tmyear = %d tmmonth = %d tmday = %d tmhours = %d tmminutes = %d tmseconds = %d\n", tmm.tm_year, tmm.tm_mon, tmm.tm_mday, tmm.tm_hour , tmm.tm_min, tmm.tm_sec);		
+			
+			// Convert tm to time_t
+			ut.actime  = mktime (&tma);
+			ut.modtime = mktime (&tmm);
+			
+			// So we need to perform a _utime () after the file(s) have been determined
+			if (iFilePos <= argc)
+			{
+				//printf ("args=%d file(s) start at offset %d\n", argc, iFilePos);
+				int j;
+				
+				for (j = iFilePos; j < argc; j++)
+				{
+					touch (argv [j], &ut, bCreate);
+				}
+			}
 		}
 	}
 		
 	exit (0);
 }
-
-/*
-The utimbuf structure is used with the utime function to specify new access and modification times for a file. It contains the following members:
-
-time_t actime
-This is the access time for the file. 
-time_t modtime
-This is the modification time for the file.
-
-           struct tm
-           { int tm_sec;      // 0 to 59 (or 60 for occasional rare leap-seconds)
-             int tm_min;      // 0 to 59
-             int tm_hour;     // 0 to 23
-             int tm_mday;     // 1 to 31
-             int tm_mon;      // 0 to 11, stupidly 0=January, 11=December
-             int tm_year;     // year-1900, so 79 means 1979, 103 means 2003
-             int tm_wday;     // 0 to 6, 0=Sunday, 1=Monday, ..., 6=Saturday
-             int tm_yday;     // 0 to 365, 0=1st January
-             int tm_isdst;    // 0 to 1, 1=DST is in effect, 0=it isn't
-             char *tm_zone;   // time zone, e.g. "PDT", "EST".
-             int tm_gmtoff; } // time zone in seconds from GMT; EST=-18000, WET=3600
-       tm structures are produced from by localtime and gmtime.
-       tm structures are converted to strings by asctime.
-       tm structures are converted to seconds by mktime and .
  
- 
-	int _utime( unsigned char *filename, struct _utimbuf *times );
-	
-	//Show file time before and after.
-	system( "dir utime.c" );
-	if( _utime( "utime.c", NULL ) == -1 )
-      perror( "_utime failed\n" );
-	else
-      printf( "File time modified\n" );
-	system( "dir utime.c" );
-	
- */
- 
-int touch (char *filename, char **argv)
+int touch (char *filename, struct _utimbuf *timestamp, short int bCreate)
 {
 	struct utimbuf ut;
 
-	if (argv == NULL)
+	if (timestamp == ( struct _utimbuf *) NULL)
 	{
 		printf ("Simple touch with filename: %s\n", filename); 
-		
-		// Show file time before
-		char sys [100];
-		sprintf (sys, "dir %s", filename);
-		system (sys);
-		
-		// Does the file exist. If not, create it?
-		FILE *fp = fopen (filename, "r");
+	}
+	else
+	{
+		printf ("Timestamp touch with filename: %s\n", filename); 
+	}
+	
+	// Show file time before
+	//char sys [100];
+	//sprintf (sys, "dir %s", filename);
+	//system (sys);
+	
+	// Does the file exist. If not, create it?
+	FILE *fp = fopen (filename, "r");
 
-		if (fp) 
+	if (fp) 
+	{
+		// exists
+		fclose (fp);
+
+		if (_utime (filename, timestamp) == -1)
+			perror ("_utime failed\n");
+	} 
+	else if (bCreate)
+	{
+		// doesnt exist
+		printf ("No such file: %s\n", filename);
+		fp = fopen (filename, "wb");
+		
+		if (fp)
 		{
-			// exists
 			fclose (fp);
 
-			if (_utime (filename, NULL) == -1)
+			if (_utime (filename, timestamp) == -1)
 				perror ("_utime failed\n");
-			else
-				printf ("File time modified\n");
-		} 
-		else 
+		}
+		else
 		{
-			// doesnt exist
-			printf ("No such file: %s\n", filename);
-			fp = fopen (filename, "wb");
-			
-			if (fp)
-			{
-				fclose (fp);
-			}
-			else
-			{
-				perror ("create file failed\n");
-			}
-		}		
-		
-		system (sys);
-	}
+			perror ("create file failed\n");
+		}
+	}		
+	
+	//system (sys);
 }

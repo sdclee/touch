@@ -1,0 +1,22 @@
+
+Still requires a little bit of work for trapping unusual input, but to date works for:
+
+Create a file if it doesn't exist - set timestamp to now
+	touch filename
+
+Don't create a file if it doesn't exist - set timestamp to now
+	touch -c filename
+
+Create a file if it doesn't exist - set timestamp to 04:05:12 01/02/2011
+	touch -t 201102030405.12
+	touch -t 1102030405.12
+	touch -t 02030405.12
+
+Create a file if it doesn't exist - set timestamp to 04:05:00 01/02/2011
+	touch -t 201102030405
+	touch -t 1102030405
+	touch -t 02030405
+
+
+Lee Crampton
+December 16th 2011
