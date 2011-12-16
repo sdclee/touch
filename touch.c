@@ -2,7 +2,8 @@
  * touch.c
  * Lee Crampton
  * sdclee@gmail.com
- * October 29th 2011
+ * Original date : October 29th 2011
+ * Last change   : December 16th 2001
  *
  * A simple implementation of the *nix touch program for the windows command line.
  * There are version freely available on the internet but I wasn't able to locate one that
@@ -72,7 +73,7 @@ int main (int argc, char **argv)
 	{
 		if (0 == strcmp (argv [1], "--version"))
 		{
-			printf ("touch (SoftDev version 0.01)\n");
+			printf ("touch (SoftDev version 0.02)\n");
 			printf ("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n");
 			printf ("This is free software: you are free to change and redistribute it.\n");
 			printf ("There is NO WARRANTY, to the extent permitted by law.\n");
@@ -211,6 +212,16 @@ int main (int argc, char **argv)
 				{
 					touch (argv [j], &ut, bCreate);
 				}
+			}
+		}
+		else
+		{
+			// no special args to deal with
+			int j;
+				
+			for (j = iFilePos; j < argc; j++)
+			{
+				touch (argv [j], pnull, bCreate);
 			}
 		}
 	}

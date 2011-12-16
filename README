@@ -8,12 +8,12 @@ Included in the repo should be:
 	touch.exe (windows binary)
 	touch (linux binary)
 
-To complie in linux, simply run:
+To compile in linux, simply run:
 
 	gcc -o touch touch.c
 
 
-To complie in windows, install (the beautifully lightweight tcc) and simply run:
+To compile in windows, install (the beautifully lightweight tcc) and simply run:
 
 	tcc touch.c
 
@@ -35,6 +35,9 @@ Create a file if it doesn't exist - set timestamp to 04:05:00 01/02/2011
 	touch -t 201102030405
 	touch -t 1102030405
 	touch -t 02030405
+
+In the linux shell, create files t1, t2, t3, t4, t5:
+	touch t{1,2,3,4,5}
 
 
 Lee Crampton
