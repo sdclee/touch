@@ -56,9 +56,9 @@ int main (int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		printf ("usage: touch [flags] <file>\n");
+		printf ("usage: touch [flags] <files>\n");
 		printf ("       touch --help\n");
-		printf ("(touch 0.02)\n\n");
+		printf ("(      v 0.03)\n\n");
 		exit (1);
 	}
 	
@@ -147,7 +147,7 @@ int main (int argc, char **argv)
 			memset (szYear, '\0', sizeof (szYear));
 			
 			// We could have 8, 10 or 12 chars left in the string from which to determine the year (and century)
-			if (strlen (tStamp) == 6)
+			if (strlen (tStamp) == 8)
 			{
 				// no CCYY specified		
 				// Get the current time (just need the year part)
@@ -158,18 +158,22 @@ int main (int argc, char **argv)
 				strftime (szYear, sizeof (szYear), "%Y", loctime); 
 				tma.tm_year = tmm.tm_year = atoi (szYear) - 1900;	
 			}
-			else if (strlen (tStamp) == 8)
+			else if (strlen (tStamp) == 10)
 			{
 				// just YY specified		
 				strncpy (szYear, tStamp, 2);
-				tma.tm_year = tmm.tm_year = atoi (szYear) + 100;	
+				tma.tm_year = tmm.tm_year = atoi (szYear);	
 			}
-			else if (strlen (tStamp) == 10)
+			else if (strlen (tStamp) == 12)
 			{
 				// CCYY specified
 				strncpy (szYear, tStamp, 4);
 				tma.tm_year = tmm.tm_year = atoi (szYear) - 1900;	
 			}			
+			else
+			{
+				perror ("Invalid timestamp - [[CC]YY]MMDDhhmm[.ss]");
+			}
 			//printf ("year = %s month = %s day = %s hours = %s minutes = %s seconds = %s\n", szYear, szMon, szDay, szHour , szMin, szSec);		
 			//printf ("tmyear = %d tmmonth = %d tmday = %d tmhours = %d tmminutes = %d tmseconds = %d\n", tmm.tm_year, tmm.tm_mon, tmm.tm_mday, tmm.tm_hour , tmm.tm_min, tmm.tm_sec);		
 			
