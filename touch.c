@@ -1,7 +1,7 @@
 /*
  * touch.c
  * Lee Crampton
- * lee@softdev.co.uk
+ * sdclee@gmail.com
  * October 29th 2011
  *
  * A simple implementation of the *nix touch program for the windows command line.
@@ -10,6 +10,7 @@
  *
  * The source code can be freely distributed and modified but as a courtesy, please leave the
  * original author details in tact.
+ * License GPLv3+: GNU GPL version 3 or later
  *
  * See man touch(1)
  *
@@ -58,8 +59,7 @@ int main (int argc, char **argv)
 	{
 		printf ("usage: touch [flags] <files>\n");
 		printf ("       touch --help\n");
-		printf ("(      v 0.03)\n\n");
-		exit (1);
+		exit (0);
 	}
 	
 	short int bTimeStamp = FALSE;
@@ -70,6 +70,22 @@ int main (int argc, char **argv)
 
 	if (argc == 2)
 	{
+		if (0 == strcmp (argv [1], "--version"))
+		{
+			printf ("touch (SoftDev version 0.01)\n");
+			printf ("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n");
+			printf ("This is free software: you are free to change and redistribute it.\n");
+			printf ("There is NO WARRANTY, to the extent permitted by law.\n");
+			printf ("SoftDev version written by Lee Crampton sdclee@gmail.com\n");
+			exit (0);
+		}
+
+		if (0 == strcmp (argv [1], "--help"))
+		{
+			printf ("How about man touch (linux) or googling for man touch in you are on a windows box?\n");
+			exit (0);
+		}
+		
 		touch (argv [1], pnull, bCreate);
 		exit (0);
 	}
@@ -101,6 +117,10 @@ int main (int argc, char **argv)
 			bTimeStamp = 1;
 			iFilePos = i + 2;	// where the file(s) potentially start if there are no other flags
 			// no safety check here yet !
+			
+			if (i == argc)
+				perror ("No timestamp following -t flag!");
+				
 			char *tStamp = argv [i + 1];	
 			
 			//  [[CC]YY]MMDDhhmm[.ss] 
