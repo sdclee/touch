@@ -50,8 +50,7 @@
 #define FALSE 0;
 #define TRUE  1;
 
-//int touch (char *, struct _utimbuf *, short int);
-int touch (const char *filename, const struct utimbuf *timestamp, short int bCreate);
+int touch (const char *filename, struct utimbuf *timestamp, short int bCreate);
 
 int main (int argc, char **argv)
 {
@@ -59,7 +58,7 @@ int main (int argc, char **argv)
 	{
 		printf ("usage: touch [flags] <file>\n");
 		printf ("       touch --help\n");
-		printf ("(touch 0.01)\n\n");
+		printf ("(touch 0.02)\n\n");
 		exit (1);
 	}
 	
@@ -148,7 +147,7 @@ int main (int argc, char **argv)
 			memset (szYear, '\0', sizeof (szYear));
 			
 			// We could have 8, 10 or 12 chars left in the string from which to determine the year (and century)
-			if (strlen (tStamp) == 8)
+			if (strlen (tStamp) == 6)
 			{
 				// no CCYY specified		
 				// Get the current time (just need the year part)
@@ -159,13 +158,13 @@ int main (int argc, char **argv)
 				strftime (szYear, sizeof (szYear), "%Y", loctime); 
 				tma.tm_year = tmm.tm_year = atoi (szYear) - 1900;	
 			}
-			else if (strlen (tStamp) == 10)
+			else if (strlen (tStamp) == 8)
 			{
 				// just YY specified		
 				strncpy (szYear, tStamp, 2);
-				tma.tm_year = tmm.tm_year = atoi (szYear);	
+				tma.tm_year = tmm.tm_year = atoi (szYear) + 100;	
 			}
-			else if (strlen (tStamp) == 12)
+			else if (strlen (tStamp) == 10)
 			{
 				// CCYY specified
 				strncpy (szYear, tStamp, 4);
@@ -195,29 +194,10 @@ int main (int argc, char **argv)
 	exit (0);
 }
  
-int foo (const char *filename, short int bCreate);
-
-int foo (const char *filename, short int bCreate)
+int touch (const char *filename, struct utimbuf *timestamp, short int bCreate)
 {
-	printf ("got to foo\n");
-}
-
-int touch (const char *filename, const struct utimbuf *timestamp, short int bCreate)
-{
-	if (timestamp == ( struct utimbuf *) NULL)
-	{
-		printf ("Simple touch with filename: %s\n", filename); 
-	}
-	else
-	{
-		printf ("Timestamp touch with filename: %s\n", filename); 
-	}
-	
-	// Show file time before
-	//char sys [100];
-	//sprintf (sys, "dir %s", filename);
-	//system (sys);
-	
+	int res = 0;
+		
 	// Does the file exist. If not, create it?
 	FILE *fp = fopen (filename, "r");
 
@@ -226,12 +206,12 @@ int touch (const char *filename, const struct utimbuf *timestamp, short int bCre
 		// exists
 		fclose (fp);
 
-		if (utime (filename, timestamp) == -1)
+		if (-1 == utime (filename, timestamp))
 			perror ("utime failed\n");
 	} 
 	else if (bCreate)
 	{
-		// doesnt exist
+		// doesn't exist
 		printf ("No such file: %s\n", filename);
 		fp = fopen (filename, "wb");
 		
@@ -239,7 +219,7 @@ int touch (const char *filename, const struct utimbuf *timestamp, short int bCre
 		{
 			fclose (fp);
 
-			if (utime (filename, timestamp) == -1)
+			if (-1 == utime (filename, timestamp))
 				perror ("utime failed\n");
 		}
 		else
